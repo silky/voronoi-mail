@@ -1,7 +1,8 @@
 Voronoi-mail
 ===========
 
-Installation:
+Installation
+--
 
   1) pip install [any dependency]
   
@@ -12,7 +13,9 @@ Installation:
 	username="example@gmail.com"
     password="yourpassword"
 
-Running:
+Running
+--
 
   Open up the folder, write "python -m CGIHTTPServer 8000", and navigate there.
+
   
