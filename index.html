@@ -113,10 +113,17 @@ var VoronoiMail = {
 		this.updateStats();
 		},
 
-	recompute: function() {
+	recompute: function(ev) {
+		// alert("???");
+		cellid = this.getCellUnderMouse(ev);
+		var href = this.dataSrc[cellid]["link"]["@href"];
+		window.open(href);
+		// alert(href);
+		/*
 		this.treemap = null;
 		this.diagram = this.voronoi.compute(this.sites, this.bbox);
 		this.updateStats();
+		*/
 		},
 
 	updateStats: function() {
@@ -152,7 +159,29 @@ var VoronoiMail = {
 		return treemap;
 		},
 
-	cellUnderMouse: function(ev) {
+	updateInformation: function(ev) {
+		cellid = this.getCellUnderMouse(ev);
+		if (this.lastCell !== cellid) {
+			if (this.lastCell !== undefined) {
+				// TODO: Highlight somehow.
+				this.renderCell(this.lastCell, undefined, '#fff');
+				}
+			if (cellid !== undefined) {
+				this.renderCell(cellid, undefined, '#00f');
+				}
+			this.lastCell = cellid;
+			}
+		
+		var dataBit = this.dataSrc[cellid];
+		var from  = dataBit["author"]["name"];
+		var email = dataBit["author"]["email"];
+		var href  = dataBit["link"]["@href"];
+		$("#voronoiCellid").html("<b>" + dataBit["title"] + "</b>, from: " +  from + ", &lt;" + email + "&gt;");
+		//		<a href='" + href + "'>Read</a>.");
+		//document.getElementById('voronoiCellid').innerHTML = "(" + x + "," + y + ") = " + cellid;
+	},
+	
+	getCellUnderMouse: function(ev) {
 		if (!this.diagram) {return;}
 		var canvas = document.getElementById('voronoiCanvas');
 		if (!canvas) {
@@ -176,25 +205,9 @@ var VoronoiMail = {
 		x -= canvas.offsetLeft;
 		y -= canvas.offsetTop;
 		cellid = this.cellIdFromPoint(x,y);
-		if (this.lastCell !== cellid) {
-			if (this.lastCell !== undefined) {
-				// TODO: Highlight somehow.
-				this.renderCell(this.lastCell, undefined, '#fff');
-				}
-			if (cellid !== undefined) {
-				this.renderCell(cellid, undefined, '#00f');
-				}
-			this.lastCell = cellid;
-			}
+		return cellid;
+	},
 		
-		var dataBit = this.dataSrc[cellid];
-		var from  = dataBit["author"]["name"];
-		var email = dataBit["author"]["email"];
-		var href  = dataBit["link"]["@href"];
-		$("#voronoiCellid").html("From: " +  from + ", email: " + email + ".");
-		//		<a href='" + href + "'>Read</a>.");
-		//document.getElementById('voronoiCellid').innerHTML = "(" + x + "," + y + ") = " + cellid;
-		},
 
 	cellIdFromPoint: function(x, y) {
 		// We build the treemap on-demand
@@ -318,7 +331,7 @@ var VoronoiMail = {
 -->
 <center>
 	<div id="canvasParent">
-		<canvas id="voronoiCanvas" width="800" height="600" border="0" onclick="VoronoiMail.recompute();" onmousemove="VoronoiMail.cellUnderMouse(event);"></canvas>	
+		<canvas id="voronoiCanvas" width="800" height="600" border="0" onclick="VoronoiMail.recompute(event);" onmousemove="VoronoiMail.updateInformation(event);"></canvas>	
 	</div>
 </center>
 <h4 class="divhdr">
