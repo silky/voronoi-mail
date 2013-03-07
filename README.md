@@ -1,10 +1,15 @@
-Voronoi-mail
+Voronoi-Mail
 ===========
+
+Screenshot
+
+![Voronoi-Mail](vmail.png "Voronoi-Mail")
+
 
 Installation
 --
 
- 1) pip install [any dependency]
+ #) pip install [any dependency]
   
     specifically: pip install xmltodict
 
@@ -12,9 +17,9 @@ Installation
 Running
 --
 
- 1) Open up the folder, write "python -m CGIHTTPServer 8000", which will start the webserver on port 8000.
+ #) Open up the folder, write "python -m CGIHTTPServer 8000", which will start the webserver on port 8000.
   
- 2) Browse to http://localhost:8000/ and type in gmail account details
+ #) Browse to http://localhost:8000/ and type in gmail account details
  
 
 Trivia
