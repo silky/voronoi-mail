@@ -5,6 +5,7 @@
 <title>Voronoi-Mail</title>
 <!--[if lte IE 8]><script type="text/javascript" src="excanvas/excanvas.compiled.js"></script><![endif]-->
 <script type="text/javascript" src="rhill-voronoi-core.js"></script>
+<script type="text/javascript" src="seedrandom-min.js"></script>
 <script type="text/javascript" src="QuadTree.js"></script>
  <script src="http://code.jquery.com/jquery-latest.js"></script>
 <style type="text/css">
@@ -26,12 +27,12 @@ var VoronoiMail = {
 	diagram: null,
 	margin: 0.1,
 	canvas: null,
-	magicFactor: 1,
 	bbox: {xl:0,xr:800,yt:0,yb:600},
 	lastCell: undefined,
 	lastStyle: undefined,
 	treemap: null,
 	dataSrc: null,
+	lastNumber: -1,
 
 	init: function() {
 		this.canvas = document.getElementById('voronoiCanvas');
@@ -40,11 +41,15 @@ var VoronoiMail = {
 	
 	updateData: function (data) {
 		this.dataSrc = data;
-		this.doRender();
+		
+		if( data.length != this.lastNumber || this.lastNumber == -1 ){
+			this.doRender();
+			this.lastNumber = data.length;
+		}
 	},
 	
 	doRender: function () {
-		this.randomSites(this.dataSrc.length * this.magicFactor, true);
+		this.randomSites(this.dataSrc.length, true);
 		this.render();
 	},
 
@@ -75,7 +80,12 @@ var VoronoiMail = {
 				v = halfedges[iHalfedge].getEndpoint();
 				ctx.lineTo(v.x,v.y);
 				}
-			ctx.fillStyle='#'+colvalues[(this.voronoi.random()*16)&15]+colvalues[(this.voronoi.random()*16)&15]+colvalues[(this.voronoi.random()*16)&15];
+			
+			// seed a rng from the hash of the email.
+			email = this.dataSrc[cellid]["author"]["email"];
+			Math.seedrandom(email);
+			
+			ctx.fillStyle='#'+colvalues[(Math.random()*16)&15]+colvalues[(Math.random()*16)&15]+colvalues[(Math.random()*16)&15];
 			ctx.fill();
 			}
 		},
@@ -109,7 +119,7 @@ var VoronoiMail = {
 		// TODO: Email stats.
 		var e = document.getElementById('voronoiStats');
 		if (!e) {return;}
-		e.innerHTML = 'Last checked email at: ...';
+		// e.innerHTML = 'Last checked email at: ...';
 		if( this.dataSrc.length > 0 ){
 			$("#number").text("(" + this.dataSrc.length + ")");
 			document.title = "Voronoi-Mail (" + this.dataSrc.length + ")";
@@ -286,7 +296,13 @@ var VoronoiMail = {
 // -->
 </script>
 </head>
-<body onload="VoronoiMail.init();">
+<body>
+	<script type="text/javascript">
+	$(document).ready(function (){
+		VoronoiMail.init();
+		window.setInterval("VoronoiMail.checkForMail();", 60 * 1 * 1000);
+	});
+	</script>
 	<h1>Voronoi-Mail <span id="number"></span> </h1>
 <!--
 <h4 class="divhdr">Sites generator</h4>
@@ -301,8 +317,7 @@ var VoronoiMail = {
 	</div>
 </center>
 <h4 class="divhdr">
-	<input type="button"  onclick="VoronoiMail.checkForMail();" />
-	<p><span id="voronoiStats" style="font:normal 11px sans"></span><span id="voronoiCellid" style="font:normal 11px sans"></span></p>
+	<p><span id="voronoiStats" style="font:normal 12px sans"></span><span id="voronoiCellid" style="font:normal 12px sans"></span></p>
 </h4>
 </body>
 </html>
