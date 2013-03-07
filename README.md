@@ -14,5 +14,5 @@ Installation:
 
 Running:
 
-  Open up the folder, write "python -m CGIHTTPModule 8000", and navigate there.
+  Open up the folder, write "python -m CGIHTTPServer 8000", and navigate there.
   
