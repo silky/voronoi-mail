@@ -69,6 +69,9 @@ var VoronoiMail = {
 		if (!cells) {return;}
 		var halfedges, nHalfedges, iHalfedge;
 		var v;
+		
+		var initialRnd = Math.random();
+		
 		for (var cellid in cells) {
 			halfedges = cells[cellid].halfedges;
 			nHalfedges = halfedges.length;
@@ -82,8 +85,10 @@ var VoronoiMail = {
 				}
 			
 			// seed a rng from the hash of the email.
-			email = this.dataSrc[cellid]["author"]["email"];
-			Math.seedrandom(email);
+			if( !window.location.search.startsWith("?unique") ){
+				email = this.dataSrc[cellid]["author"]["email"];
+				Math.seedrandom(email + initialRnd);
+			}
 			
 			ctx.fillStyle='#'+colvalues[(Math.random()*16)&15]+colvalues[(Math.random()*16)&15]+colvalues[(Math.random()*16)&15];
 			ctx.fill();
@@ -319,5 +324,6 @@ var VoronoiMail = {
 <h4 class="divhdr">
 	<p><span id="voronoiStats" style="font:normal 12px sans"></span><span id="voronoiCellid" style="font:normal 12px sans"></span></p>
 </h4>
+
 </body>
 </html>
