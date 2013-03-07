@@ -19,7 +19,7 @@ h4 {font-size:14px;margin:0.5em 0 0 0;border:0;border-bottom:solid 1px #c9d7f1;p
 </style>
 <script type="text/javascript">
 <!--
-var VoronoiDemo = {
+var VoronoiMail = {
 
 	voronoi: new Voronoi(),
 	sites: [],
@@ -34,12 +34,19 @@ var VoronoiDemo = {
 	dataSrc: null,
 
 	init: function() {
-		this.dataSrc = [ {"sentby": "noon silk"}, {"sentby": "billy benson"}, {"sentby": "salma hayek"} ];
 		this.canvas = document.getElementById('voronoiCanvas');
-		
+		this.checkForMail(); // will call updateData
+	},
+	
+	updateData: function (data) {
+		this.dataSrc = data;
+		this.doRender();
+	},
+	
+	doRender: function () {
 		this.randomSites(this.dataSrc.length * this.magicFactor, true);
 		this.render();
-		},
+	},
 
 	clearSites: function() {
 		this.sites = [];
@@ -164,7 +171,13 @@ var VoronoiDemo = {
 				}
 			this.lastCell = cellid;
 			}
-		$("#voronoiCellid").text("From: " + this.dataSrc[cellid].sentby);
+		
+		var dataBit = this.dataSrc[cellid];
+		var from  = dataBit["author"]["name"];
+		var email = dataBit["author"]["email"];
+		var href  = dataBit["link"]["@href"];
+		$("#voronoiCellid").html("From: " +  from + ", email: " + email + ".");
+		//		<a href='" + href + "'>Read</a>.");
 		//document.getElementById('voronoiCellid').innerHTML = "(" + x + "," + y + ") = " + cellid;
 		},
 
@@ -227,6 +240,10 @@ var VoronoiDemo = {
 		this.drawCells();
 	},
 	
+	checkForMail: function () {
+		$.getJSON("/cgi-bin/check_email.py", function(data) { VoronoiMail.updateData(data); });
+	},
+	
 	render: function() {
 		var ctx = this.canvas.getContext('2d');
 		// background
@@ -269,21 +286,22 @@ var VoronoiDemo = {
 // -->
 </script>
 </head>
-<body onload="VoronoiDemo.init();">
+<body onload="VoronoiMail.init();">
 	<h1>Voronoi-Mail <span id="number"></span> </h1>
 <!--
 <h4 class="divhdr">Sites generator</h4>
 <div class="divinfo" id="voronoiGenerator">
-<input type="button" value="Generate" onclick="VoronoiDemo.randomSites(parseInt(document.getElementById('voronoiNumberSites').value,10),true);VoronoiDemo.render();"/> or <input type="button" value="Add" onclick="VoronoiDemo.addKsites(1);"/><input id="voronoiNumberSites" type="text" value="100" size="5" maxlength="5"/> sites randomly (Warning: performance might suffer the more sites you add.)
-<br/><input id="voronoiClearSites" type="button" value="Clear all sites" onclick="VoronoiDemo.clearSites();VoronoiDemo.render();"/>
+<input type="button" value="Generate" onclick="VoronoiMail.randomSites(parseInt(document.getElementById('voronoiNumberSites').value,10),true);VoronoiMail.render();"/> or <input type="button" value="Add" onclick="VoronoiMail.addKsites(1);"/><input id="voronoiNumberSites" type="text" value="100" size="5" maxlength="5"/> sites randomly (Warning: performance might suffer the more sites you add.)
+<br/><input id="voronoiClearSites" type="button" value="Clear all sites" onclick="VoronoiMail.clearSites();VoronoiMail.render();"/>
 </div>
 -->
 <center>
 	<div id="canvasParent">
-		<canvas id="voronoiCanvas" width="800" height="600" border="0" onclick="VoronoiDemo.recompute();" onmousemove="VoronoiDemo.cellUnderMouse(event);"></canvas>	
+		<canvas id="voronoiCanvas" width="800" height="600" border="0" onclick="VoronoiMail.recompute();" onmousemove="VoronoiMail.cellUnderMouse(event);"></canvas>	
 	</div>
 </center>
 <h4 class="divhdr">
+	<input type="button"  onclick="VoronoiMail.checkForMail();" />
 	<p><span id="voronoiStats" style="font:normal 11px sans"></span><span id="voronoiCellid" style="font:normal 11px sans"></span></p>
 </h4>
 </body>
