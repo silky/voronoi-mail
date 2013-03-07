@@ -1,0 +1,290 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Voronoi-Mail</title>
+<!--[if lte IE 8]><script type="text/javascript" src="excanvas/excanvas.compiled.js"></script><![endif]-->
+<script type="text/javascript" src="rhill-voronoi-core.js"></script>
+<script type="text/javascript" src="QuadTree.js"></script>
+ <script src="http://code.jquery.com/jquery-latest.js"></script>
+<style type="text/css">
+body {font-family:tahoma,verdana,arial;font-size:13px;margin:0;padding:0}
+body > div {margin-left:4px;margin-right:4px;}
+body > div > div {margin:0;border:1px solid #ccc;border-top:0;padding:4px;}
+h1 {margin:0 0 0.5em 0;padding: 4px 5em 4px 4px;font:bold large sans-serif;background-color:#c9d7f1;}
+h4 {font-size:14px;margin:0.5em 0 0 0;border:0;border-bottom:solid 1px #c9d7f1;padding:2px;background-color:#e5ecf9;}
+#canvasParent {margin-top:0;margin-bottom:1em;padding:0;border:0}
+#voronoiCode {font:11px monospace;overflow:auto;color:#666;}
+#voronoiCode span {color:green;font-weight:bold;}
+</style>
+<script type="text/javascript">
+<!--
+var VoronoiDemo = {
+
+	voronoi: new Voronoi(),
+	sites: [],
+	diagram: null,
+	margin: 0.1,
+	canvas: null,
+	magicFactor: 1,
+	bbox: {xl:0,xr:800,yt:0,yb:600},
+	lastCell: undefined,
+	lastStyle: undefined,
+	treemap: null,
+	dataSrc: null,
+
+	init: function() {
+		this.dataSrc = [ {"sentby": "noon silk"}, {"sentby": "billy benson"}, {"sentby": "salma hayek"} ];
+		this.canvas = document.getElementById('voronoiCanvas');
+		
+		this.randomSites(this.dataSrc.length * this.magicFactor, true);
+		this.render();
+		},
+
+	clearSites: function() {
+		this.sites = [];
+		this.treemap = null;
+		this.diagram = this.voronoi.compute(this.sites, this.bbox);
+		this.updateStats();
+		},
+
+		
+	drawCells: function() {
+		var colvalues = '0123456789ABCDEF';
+		var ctx = this.canvas.getContext('2d');	
+		this.voronoi.closeCells(this.bbox);
+		var cells = this.diagram.cells;
+		if (!cells) {return;}
+		var halfedges, nHalfedges, iHalfedge;
+		var v;
+		for (var cellid in cells) {
+			halfedges = cells[cellid].halfedges;
+			nHalfedges = halfedges.length;
+			//this.assert(nSegments > 0);
+			v = halfedges[0].getStartpoint();
+			ctx.beginPath();
+			ctx.moveTo(v.x,v.y);
+			for (iHalfedge=0; iHalfedge<nHalfedges; iHalfedge++) {
+				v = halfedges[iHalfedge].getEndpoint();
+				ctx.lineTo(v.x,v.y);
+				}
+			ctx.fillStyle='#'+colvalues[(this.voronoi.random()*16)&15]+colvalues[(this.voronoi.random()*16)&15]+colvalues[(this.voronoi.random()*16)&15];
+			ctx.fill();
+			}
+		},
+		
+		
+	randomSites: function(n,clear) {
+		if (clear) {this.sites = [];}
+		// create vertices
+		var xmargin = this.canvas.width*this.margin,
+			ymargin = this.canvas.height*this.margin,
+			xo = xmargin,
+			dx = this.canvas.width-xmargin*2,
+			yo = ymargin,
+			dy = this.canvas.height-ymargin*2;
+		for (var i=0; i<n; i++) {
+			this.sites.push({x:self.Math.round((xo+self.Math.random()*dx)*10)/10,y:self.Math.round((yo+self.Math.random()*dy)*10)/10});
+			}
+		this.treemap = null;
+		this.diagram = this.voronoi.compute(this.sites, this.bbox);
+		this.updateStats();
+		},
+
+	recompute: function() {
+		this.treemap = null;
+		this.diagram = this.voronoi.compute(this.sites, this.bbox);
+		this.updateStats();
+		},
+
+	updateStats: function() {
+		if (!this.diagram) {return;}
+		// TODO: Email stats.
+		var e = document.getElementById('voronoiStats');
+		if (!e) {return;}
+		e.innerHTML = 'Last checked email at: ...';
+		if( this.dataSrc.length > 0 ){
+			$("#number").text("(" + this.dataSrc.length + ")");
+			document.title = "Voronoi-Mail (" + this.dataSrc.length + ")";
+		} else {
+			$("#number").text("");
+			document.title = "Voronoi-Mail";
+		}
+	},
+		
+	buildTreemap: function() {
+		var treemap = new QuadTree({
+			x: this.bbox.xl,
+			y: this.bbox.yt,
+			width: this.bbox.xr-this.bbox.xl,
+			height: this.bbox.yb-this.bbox.yt
+			});
+		var cells = this.diagram.cells,
+			iCell = cells.length;
+		// iterate through all cells
+		while (iCell--) {
+			bbox = cells[iCell].getBbox();
+			bbox.cellid = iCell;
+			treemap.insert(bbox);
+			}
+		return treemap;
+		},
+
+	cellUnderMouse: function(ev) {
+		if (!this.diagram) {return;}
+		var canvas = document.getElementById('voronoiCanvas');
+		if (!canvas) {
+			return;
+			}
+		// >>> http://www.quirksmode.org/js/events_properties.html#position
+		var x = 0,
+			y = 0;
+		if (!ev) {
+			ev = window.event;
+			}
+		if (ev.pageX || ev.pageY) {
+			x = ev.pageX;
+			y = ev.pageY;
+			}
+		else if (e.clientX || e.clientY) {
+			x = ev.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			y = ev.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+			}
+		// <<< http://www.quirksmode.org/js/events_properties.html#position
+		x -= canvas.offsetLeft;
+		y -= canvas.offsetTop;
+		cellid = this.cellIdFromPoint(x,y);
+		if (this.lastCell !== cellid) {
+			if (this.lastCell !== undefined) {
+				// TODO: Highlight somehow.
+				this.renderCell(this.lastCell, undefined, '#fff');
+				}
+			if (cellid !== undefined) {
+				this.renderCell(cellid, undefined, '#00f');
+				}
+			this.lastCell = cellid;
+			}
+		$("#voronoiCellid").text("From: " + this.dataSrc[cellid].sentby);
+		//document.getElementById('voronoiCellid').innerHTML = "(" + x + "," + y + ") = " + cellid;
+		},
+
+	cellIdFromPoint: function(x, y) {
+		// We build the treemap on-demand
+		if (this.treemap === null) {
+			this.treemap = this.buildTreemap();
+			}
+		// Get the Voronoi cells from the tree map given x,y
+		var items = this.treemap.retrieve({x:x,y:y}),
+			iItem = items.length,
+			cells = this.diagram.cells,
+			cell, cellid;
+		while (iItem--) {
+			cellid = items[iItem].cellid;
+			cell = cells[cellid];
+			if (cell.pointIntersection(x,y) > 0) {
+				return cellid;
+				}
+			}
+		return undefined;
+		},
+
+	renderCell: function(id, fillStyle, strokeStyle) {
+		if (id === undefined) {return;}
+		if (!this.diagram) {return;}
+		var cell = this.diagram.cells[id];
+		if (!cell) {return;}
+		var ctx = this.canvas.getContext('2d');
+		ctx.globalAlpha = 1;
+		// edges
+		ctx.beginPath();
+		var halfedges = cell.halfedges,
+			nHalfedges = halfedges.length,
+			v = halfedges[0].getStartpoint();
+		ctx.moveTo(v.x,v.y);
+		for (var iHalfedge=0; iHalfedge<nHalfedges; iHalfedge++) {
+			v = halfedges[iHalfedge].getEndpoint();
+			ctx.lineTo(v.x,v.y);
+			}
+		
+		if(fillStyle !== undefined) {
+			ctx.fillStyle = fillStyle;
+			ctx.fill();
+		}
+		
+		// ctx.strokeStyle = strokeStyle;
+		// ctx.stroke();
+		// site
+		// v = cell.site;
+		// ctx.fillStyle = '#44f';
+		// ctx.beginPath();
+		// ctx.rect(v.x-2/3,v.y-2/3,2,2);
+		// ctx.fill();
+		},
+		
+	addKsites: function (k) {
+		this.randomSites(k, false);
+		this.render();
+		this.drawCells();
+	},
+	
+	render: function() {
+		var ctx = this.canvas.getContext('2d');
+		// background
+		ctx.globalAlpha = 1;
+		ctx.beginPath();
+		ctx.rect(0,0,this.canvas.width,this.canvas.height);
+		ctx.fillStyle = 'white';
+		ctx.fill();
+		ctx.strokeStyle = '#888';
+		ctx.stroke();
+		// voronoi
+		if (!this.diagram) {return;}
+		// edges
+		ctx.beginPath();
+		ctx.strokeStyle = '#000';
+		var edges = this.diagram.edges,
+			iEdge = edges.length,
+			edge, v;
+		while (iEdge--) {
+			edge = edges[iEdge];
+			v = edge.va;
+			ctx.moveTo(v.x,v.y);
+			v = edge.vb;
+			ctx.lineTo(v.x,v.y);
+			}
+		ctx.stroke();
+		// sites
+		ctx.beginPath();
+		ctx.fillStyle = '#44f';
+		var sites = this.sites,
+			iSite = sites.length;
+		while (iSite--) {
+			v = sites[iSite];
+			ctx.rect(v.x-2/3,v.y-2/3,2,2);
+			}
+		ctx.fill();
+		this.drawCells();
+		},
+	};
+// -->
+</script>
+</head>
+<body onload="VoronoiDemo.init();">
+	<h1>Voronoi-Mail <span id="number"></span> </h1>
+<!--
+<h4 class="divhdr">Sites generator</h4>
+<div class="divinfo" id="voronoiGenerator">
+<input type="button" value="Generate" onclick="VoronoiDemo.randomSites(parseInt(document.getElementById('voronoiNumberSites').value,10),true);VoronoiDemo.render();"/> or <input type="button" value="Add" onclick="VoronoiDemo.addKsites(1);"/><input id="voronoiNumberSites" type="text" value="100" size="5" maxlength="5"/> sites randomly (Warning: performance might suffer the more sites you add.)
+<br/><input id="voronoiClearSites" type="button" value="Clear all sites" onclick="VoronoiDemo.clearSites();VoronoiDemo.render();"/>
+</div>
+-->
+<center>
+	<div id="canvasParent">
+		<canvas id="voronoiCanvas" width="800" height="600" border="0" onclick="VoronoiDemo.recompute();" onmousemove="VoronoiDemo.cellUnderMouse(event);"></canvas>	
+	</div>
+</center>
+<h4 class="divhdr">
+	<p><span id="voronoiStats" style="font:normal 11px sans"></span><span id="voronoiCellid" style="font:normal 11px sans"></span></p>
+</h4>
+</body>
+</html>
