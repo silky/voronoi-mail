@@ -16,6 +16,7 @@ h1 {margin:0 0 0.5em 0;padding: 4px 5em 4px 4px;font:bold large sans-serif;backg
 h4 {font-size:14px;margin:0.5em 0 0 0;border:0;border-bottom:solid 1px #c9d7f1;padding:2px;background-color:#e5ecf9;}
 #canvasParent {margin-top:0;margin-bottom:1em;padding:0;border:0}
 #voronoiCode {font:11px monospace;overflow:auto;color:#666;}
+p { margin: 2px; }
 #voronoiCode span {color:green;font-weight:bold;}
 </style>
 <script type="text/javascript">
@@ -41,6 +42,10 @@ var VoronoiMail = {
 	
 	updateData: function (data) {
 		this.dataSrc = data;
+		
+		if( !data ){
+			return;
+		}
 		
 		if( data.length != this.lastNumber || this.lastNumber == -1 ){
 			this.doRender();
@@ -114,21 +119,13 @@ var VoronoiMail = {
 		},
 
 	recompute: function(ev) {
-		// alert("???");
 		cellid = this.getCellUnderMouse(ev);
 		var href = this.dataSrc[cellid]["link"]["@href"];
 		window.open(href);
-		// alert(href);
-		/*
-		this.treemap = null;
-		this.diagram = this.voronoi.compute(this.sites, this.bbox);
-		this.updateStats();
-		*/
 		},
 
 	updateStats: function() {
 		if (!this.diagram) {return;}
-		// TODO: Email stats.
 		var e = document.getElementById('voronoiStats');
 		if (!e) {return;}
 		// e.innerHTML = 'Last checked email at: ...';
@@ -163,7 +160,6 @@ var VoronoiMail = {
 		cellid = this.getCellUnderMouse(ev);
 		if (this.lastCell !== cellid) {
 			if (this.lastCell !== undefined) {
-				// TODO: Highlight somehow.
 				this.renderCell(this.lastCell, undefined, '#fff');
 				}
 			if (cellid !== undefined) {
@@ -177,8 +173,6 @@ var VoronoiMail = {
 		var email = dataBit["author"]["email"];
 		var href  = dataBit["link"]["@href"];
 		$("#voronoiCellid").html("<b>" + dataBit["title"] + "</b>, from: " +  from + ", &lt;" + email + "&gt;");
-		//		<a href='" + href + "'>Read</a>.");
-		//document.getElementById('voronoiCellid').innerHTML = "(" + x + "," + y + ") = " + cellid;
 	},
 	
 	getCellUnderMouse: function(ev) {
@@ -269,7 +263,12 @@ var VoronoiMail = {
 	},
 	
 	checkForMail: function () {
-		$.getJSON("/cgi-bin/check_email.py", function(data) { VoronoiMail.updateData(data); });
+		$.ajax({ 
+			dataType: "json",
+			url: "/cgi-bin/check_email.py",
+			data: $("#account").serialize(), 
+			success: function(data) { VoronoiMail.updateData(data); },
+			type: "POST" });
 	},
 	
 	render: function() {
@@ -322,16 +321,13 @@ var VoronoiMail = {
 	});
 	</script>
 	<h1>Voronoi-Mail <span id="number"></span> </h1>
-<!--
-<h4 class="divhdr">Sites generator</h4>
-<div class="divinfo" id="voronoiGenerator">
-<input type="button" value="Generate" onclick="VoronoiMail.randomSites(parseInt(document.getElementById('voronoiNumberSites').value,10),true);VoronoiMail.render();"/> or <input type="button" value="Add" onclick="VoronoiMail.addKsites(1);"/><input id="voronoiNumberSites" type="text" value="100" size="5" maxlength="5"/> sites randomly (Warning: performance might suffer the more sites you add.)
-<br/><input id="voronoiClearSites" type="button" value="Clear all sites" onclick="VoronoiMail.clearSites();VoronoiMail.render();"/>
-</div>
--->
+	<form method="post" id="account">
+		<p>Username: <input type="text" name="username" /> Password: <input type="password" name="password" /></p>
+	</form>
+
 <center>
 	<div id="canvasParent">
-		<canvas id="voronoiCanvas" width="800" height="600" border="0" onclick="VoronoiMail.recompute(event);" onmousemove="VoronoiMail.updateInformation(event);"></canvas>	
+		<canvas id="voronoiCanvas" width="800" height="600" style="cursor: pointer" border="0" onclick="VoronoiMail.recompute(event);" onmousemove="VoronoiMail.updateInformation(event);"></canvas>	
 	</div>
 </center>
 <h4 class="divhdr">

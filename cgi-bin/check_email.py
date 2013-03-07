@@ -1,6 +1,6 @@
 import cgi, json, xmltodict
 from collections import namedtuple
-import conf
+#import conf
 
 print "Content-Type: text/html"
 
@@ -19,16 +19,23 @@ def get_unread_msgs(user, passwd):
     feed = urllib2.urlopen('https://mail.google.com/mail/feed/atom')
     return xmltodict.parse(feed.read())
 
-emails = get_unread_msgs(conf.username, conf.password)
+form = cgi.FieldStorage()
+
+# raise Exception(form["username"].value)
+
+#if not "username" in form:
+#emails = get_unread_msgs(conf.username, conf.password)
+
+#else:
+emails = get_unread_msgs(form["username"].value, form["password"].value)
 
 # Let's look at only the first 20.
-max = 20
+max = 50
 
 if len(emails["feed"]["entry"]) > max:
 	emails = emails["feed"]["entry"][0:max]
 else:
 	emails = emails["feed"]["entry"]
-	
-print ""
 
+print ""
 print json.dumps(emails)
