@@ -32,4 +32,12 @@ Trivia
 	otherwise they will be coloured the same (though other emails may clash in the colouring.)
   
  * The Gmail API appears to only want to ever return 20 new emails.
+
+FAQs
+--
+
+ * What does it do?
+  
+  It displays your unread emails as a Voronoi diagram; you may click on segments of the diagram to open
+  particular emails. Upon receiving a new email, the diagram will be re-drawn.
   
