@@ -131,10 +131,10 @@ var VoronoiMail = {
 		// e.innerHTML = 'Last checked email at: ...';
 		if( this.dataSrc.length > 0 ){
 			$("#number").text("(" + this.dataSrc.length + ")");
-			document.title = "Voronoi-Mail (" + this.dataSrc.length + ")";
+			// document.title = "Voronoi-Mail (" + this.dataSrc.length + ")";
 		} else {
 			$("#number").text("");
-			document.title = "Voronoi-Mail";
+			// document.title = "Voronoi-Mail";
 		}
 	},
 		
@@ -266,7 +266,6 @@ var VoronoiMail = {
 		$.ajax({ 
 			dataType: "json",
 			url: "/cgi-bin/check_email.py",
-			data: $("#account").serialize(), 
 			success: function(data) { VoronoiMail.updateData(data); },
 			type: "POST" });
 	},
@@ -320,11 +319,7 @@ var VoronoiMail = {
 		window.setInterval("VoronoiMail.checkForMail();", 60 * 1 * 1000);
 	});
 	</script>
-	<h1>Voronoi-Mail <span id="number"></span> </h1>
-	<form method="post" id="account">
-		<p>Username: <input type="text" name="username" /> Password: <input type="password" name="password" /></p>
-	</form>
-
+	<h1>Voronoi-Mail <span id="number" style="display: none"></span> </h1>
 <center>
 	<div id="canvasParent">
 		<canvas id="voronoiCanvas" width="800" height="600" style="cursor: pointer" border="0" onclick="VoronoiMail.recompute(event);" onmousemove="VoronoiMail.updateInformation(event);"></canvas>	

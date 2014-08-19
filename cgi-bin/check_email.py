@@ -1,8 +1,9 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 import cgi, json, xmltodict
 from collections import namedtuple
+import keyring
 
-print "Content-Type: text/html"
+print "Content-Type: text/html\n"
 
 import urllib2
 
@@ -19,9 +20,9 @@ def get_unread_msgs(user, passwd):
     feed = urllib2.urlopen('https://mail.google.com/mail/feed/atom')
     return xmltodict.parse(feed.read())
 
-form = cgi.FieldStorage()
-
-emails = get_unread_msgs(form["username"].value, form["password"].value)
+user = "noonsilk@gmail.com"
+keyringPassword = keyring.get_password("email", user) 
+emails = get_unread_msgs(user, keyringPassword)
 
 max = 50
 
@@ -32,3 +33,4 @@ else:
 
 print ""
 print json.dumps(emails)
+
