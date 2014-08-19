@@ -24,7 +24,7 @@ Running
 
  1. Set a keyring password with `keyring` with perhaps the following script:
 
- ````
+````
 #!/usr/bin/env python
 # coding=UTF-8
 
@@ -41,7 +41,7 @@ if passwd1 != passwd2:
     exit(1)
 else:
     keyring.set_password(group1, group2, passwd1)
- ````
+````
 
 
  1. Edit `/cgi-bin/check_email.py` to be your email address.
