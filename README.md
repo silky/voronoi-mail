@@ -11,15 +11,44 @@ Installation
 
  1. pip install [any dependency]
   
-    specifically: pip install xmltodict
+    specifically: 
+
+    ````
+    pip install xmltodict
+    pip install keyring
+    ````
 
 
 Running
 --
 
+ 1. Set a keyring password with `keyring` with perhaps the following script:
+
+ ````
+#!/usr/bin/env python
+# coding=UTF-8
+
+import getpass
+import keyring
+
+group1 = raw_input("Group 1: ")
+group2 = raw_input("Group 2: ")
+passwd1 = getpass.getpass("Password: ")
+passwd2 = getpass.getpass("Password (again): ")
+
+if passwd1 != passwd2:
+    print("Error, your passwords don't match.")
+    exit(1)
+else:
+    keyring.set_password(group1, group2, passwd1)
+ ````
+
+
+ 1. Edit `/cgi-bin/check_email.py` to be your email address.
+
  1. Open up the folder, write "python -m CGIHTTPServer 8000", which will start the webserver on port 8000.
   
- 1. Browse to http://localhost:8000/ and type in gmail account details
+ 1. Browse to http://localhost:8000/
  
 
 Trivia
