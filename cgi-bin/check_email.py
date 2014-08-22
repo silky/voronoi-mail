@@ -31,6 +31,9 @@ if len(emails["feed"]["entry"]) > max:
 else:
 	emails = emails["feed"]["entry"]
 
+if type(emails) != type([]):
+    emails = [emails]
+
 print ""
 print json.dumps(emails)
 

@@ -48,12 +48,14 @@ var VoronoiMail = {
 			return;
 		}
 		
+        // alert("datalength: " + data.length)
+
 		if( data.length != this.lastNumber || this.lastNumber == -1 ){
 			this.doRender();
 			this.lastNumber = data.length;
 		}
 
-        this.multiBeep(data.length);
+        // this.multiBeep(data.length);
 	},
 	
     multiBeep: function (times) {
