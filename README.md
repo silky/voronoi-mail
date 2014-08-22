@@ -61,6 +61,8 @@ Trivia
 	otherwise they will be coloured the same (though other emails may clash in the colouring.)
   
  * The Gmail API appears to only want to ever return 20 new emails.
+ 
+ * Gmail has changed something recently so you need to approve this method of logging in and checking emails. You'll be emailed about it when you try.
 
 FAQs
 --
